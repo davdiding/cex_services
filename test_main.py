@@ -3,6 +3,7 @@ from datetime import datetime as dt
 from datetime import timedelta as td
 from unittest import IsolatedAsyncioTestCase
 
+import pandas as pd
 from dotenv import load_dotenv
 
 from cex_adaptors.binance import Binance
@@ -12,6 +13,7 @@ from cex_adaptors.gateio import Gateio
 from cex_adaptors.htx import Htx
 from cex_adaptors.kucoin import Kucoin
 from cex_adaptors.okx import Okx
+from cex_adaptors.woo import WOO
 
 load_dotenv()
 
@@ -1158,3 +1160,24 @@ class TestOutputStructure(IsolatedAsyncioTestCase):
                         )
 
         return
+
+
+class TestWoo(IsolatedAsyncioTestCase):
+    async def asyncSetUp(self):
+        self.woo = WOO()
+        await self.woo.sync_exchange_info()
+
+    async def asyncTearDown(self):
+        await self.woo.close()
+
+    async def test_get_historical_candlesticks(self):
+        interval = "1d"
+        instrument_id = "1000LUNC/USDT:USDT-PERP"
+        num = 1000
+
+        datas = await self.woo.get_history_candlesticks(instrument_id=instrument_id, interval=interval, num=num)
+        df = pd.DataFrame(datas["rows"])
+        df["start"] = df["start_timestamp"].apply(lambda x: dt.fromtimestamp(x / 1000))
+        df["end"] = df["end_timestamp"].apply(lambda x: dt.fromtimestamp(x / 1000))
+        df.to_csv("woo_api_lunc.csv", index=False)
+        return True

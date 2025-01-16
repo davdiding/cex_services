@@ -2,6 +2,19 @@ from .base import Parser
 
 
 class WOOParser(Parser):
+    INTERVAL_MAP = {
+        "1m": "1m",
+        "5m": "5m",
+        "15m": "15m",
+        "30m": "30m",
+        "1h": "1h",
+        "4h": "4h",
+        "12h": "12h",
+        "1d": "1d",
+        "1w": "1w",
+        "1M": "1M",
+    }
+
     def __init__(self) -> None:
         super().__init__()
 
@@ -63,3 +76,8 @@ class WOOParser(Parser):
             "settle": ss[2],
             "multiplier": self.parse_multiplier(ss[1]),
         }
+
+    def get_interval(self, interval: str) -> str:
+        if interval not in self.INTERVAL_MAP:
+            raise ValueError(f"Invalid interval: {interval}")
+        return self.INTERVAL_MAP[interval]
